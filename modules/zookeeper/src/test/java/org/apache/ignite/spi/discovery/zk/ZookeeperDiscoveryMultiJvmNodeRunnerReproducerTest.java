@@ -17,81 +17,23 @@
 
 package org.apache.ignite.spi.discovery.zk;
 
-import org.apache.curator.test.TestingCluster;
 import org.apache.ignite.Ignite;
 import org.apache.ignite.configuration.IgniteConfiguration;
 import org.apache.ignite.internal.processors.resource.GridSpringResourceContext;
-import org.apache.ignite.spi.discovery.DiscoverySpi;
 import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi;
 import org.apache.ignite.spi.discovery.tcp.ipfinder.TcpDiscoveryIpFinder;
 import org.apache.ignite.spi.discovery.tcp.ipfinder.vm.TcpDiscoveryVmIpFinder;
 import org.apache.ignite.testframework.GridTestUtils;
-import org.apache.ignite.testframework.config.GridTestProperties;
 import org.apache.ignite.testframework.junits.common.GridCommonAbstractTest;
 import org.apache.ignite.testframework.junits.multijvm.IgniteProcessProxy;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 /**
- * Reproducer for IGNITE-27016.
- *
- * <p>This test starts the second node in a separate JVM and validates that
- * discovery SPI preprocessed to {@link ZookeeperDiscoverySpi} is preserved
- * through remote-node configuration serialization.</p>
- *
- * <p>Expected behavior:
- * with fix - node joins successfully;
- * without fix - remote startup fails (e.g. "Remote node has not joined").</p>
+ * Reproducer for the remote-node startup path in IGNITE-27016.
  */
 public class ZookeeperDiscoveryMultiJvmNodeRunnerReproducerTest extends GridCommonAbstractTest {
     /** */
     private static final TcpDiscoveryIpFinder IP_FINDER = new TcpDiscoveryVmIpFinder(true);
-
-    /** */
-    private static TestingCluster testingCluster;
-
-    /** */
-    private static String oldZkForceSync;
-
-    /** */
-    private static String oldCfgPreprocessor;
-
-    /** */
-    @BeforeClass
-    public static void beforeClass() throws Exception {
-        oldZkForceSync = System.getProperty("zookeeper.forceSync");
-        oldCfgPreprocessor = System.getProperty(GridTestProperties.IGNITE_CFG_PREPROCESSOR_CLS);
-
-        System.setProperty("zookeeper.forceSync", "false");
-
-        testingCluster = ZookeeperDiscoverySpiTestUtil.createTestingCluster(3);
-        testingCluster.start();
-
-        System.setProperty(
-                GridTestProperties.IGNITE_CFG_PREPROCESSOR_CLS,
-                ZookeeperDiscoveryMultiJvmNodeRunnerReproducerTest.class.getName()
-        );
-    }
-
-    /** */
-    @AfterClass
-    public static void afterClass() throws Exception {
-        if (testingCluster != null)
-            testingCluster.close();
-
-        testingCluster = null;
-
-        if (oldZkForceSync != null)
-            System.setProperty("zookeeper.forceSync", oldZkForceSync);
-        else
-            System.clearProperty("zookeeper.forceSync");
-
-        if (oldCfgPreprocessor != null)
-            System.setProperty(GridTestProperties.IGNITE_CFG_PREPROCESSOR_CLS, oldCfgPreprocessor);
-        else
-            System.clearProperty(GridTestProperties.IGNITE_CFG_PREPROCESSOR_CLS);
-    }
 
     /** {@inheritDoc} */
     @Override protected boolean isMultiJvm() {
@@ -102,8 +44,8 @@ public class ZookeeperDiscoveryMultiJvmNodeRunnerReproducerTest extends GridComm
     @Override protected IgniteConfiguration getConfiguration(String igniteInstanceName) throws Exception {
         IgniteConfiguration cfg = super.getConfiguration(igniteInstanceName);
 
-        // Intentionally set TCP discovery in base config.
-        // The preprocessor must replace it with ZooKeeper discovery.
+        // Base config intentionally starts with TCP discovery.
+        // The test then replaces it with ZooKeeper discovery before remote-node serialization.
         TcpDiscoverySpi spi = new TcpDiscoverySpi();
         spi.setIpFinder(IP_FINDER);
 
@@ -134,11 +76,12 @@ public class ZookeeperDiscoveryMultiJvmNodeRunnerReproducerTest extends GridComm
         if (cfg == null)
             cfg = optimize(getConfiguration(igniteInstanceName));
 
-        // Critical for reproducer:
-        // apply preprocessor before IgniteNodeRunner.storeToFile(...),
-        // then force resetDiscovery=true to exercise serialization path.
-        preprocessConfiguration(cfg);
+        // Apply the ZooKeeper preprocessor before IgniteProcessProxy serializes configuration.
+        ZookeeperDiscoverySpiTestConfigurator.preprocessConfiguration(cfg);
 
+        // Bypass GridAbstractTest#startRemoteGrid(...):
+        // its non-TCP special case clones discovery SPI and clears resetDiscovery,
+        // which would hide the serialization path this reproducer targets.
         return new IgniteProcessProxy(
                 cfg,
                 cfg.getGridLogger(),
@@ -149,30 +92,7 @@ public class ZookeeperDiscoveryMultiJvmNodeRunnerReproducerTest extends GridComm
     }
 
     /**
-     * Called via reflection by {@link org.apache.ignite.testframework.junits.GridAbstractTest}.
-     *
-     * @param cfg Configuration to preprocess.
-     */
-    @SuppressWarnings("unused")
-    public static void preprocessConfiguration(IgniteConfiguration cfg) {
-        if (testingCluster == null)
-            throw new IllegalStateException("Test ZooKeeper cluster is not started.");
-
-        ZookeeperDiscoverySpi zkSpi = new TestZookeeperDiscoverySpi();
-
-        DiscoverySpi spi = cfg.getDiscoverySpi();
-
-        if (spi instanceof TcpDiscoverySpi)
-            zkSpi.setClientReconnectDisabled(((TcpDiscoverySpi)spi).isClientReconnectDisabled());
-
-        zkSpi.setSessionTimeout(30_000);
-        zkSpi.setZkConnectionString(testingCluster.getConnectString());
-
-        cfg.setDiscoverySpi(zkSpi);
-    }
-
-    /**
-     * Reproduces the bug from unpatched code path: remote node startup fails.
+     * Verifies that a remote node started from a preprocessed configuration joins the cluster.
      */
     @Test
     public void testRemoteNodeStartWithPreprocessedDiscovery() throws Exception {
