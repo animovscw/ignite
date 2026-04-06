@@ -478,7 +478,7 @@
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>build-helper-maven-plugin</artifactId>
-                    <version>3.0.0</version>
+                    <version>3.6.1</version>
                 </plugin>
 
                 <plugin>
@@ -497,7 +497,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-antrun-plugin</artifactId>
-                    <version>3.2.0</version>
+                    <version>3.14.1</version>
                 </plugin>
 
                 <plugin>
@@ -930,7 +930,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-compiler-plugin</artifactId>
-                        <version>3.7.0</version>
+                        <version>3.14.1</version>
                         <configuration>
                             <compilerArgs>
                                 <arg>--add-exports=java.base/jdk.internal.misc=ALL-UNNAMED</arg>
@@ -1017,7 +1017,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-compiler-plugin</artifactId>
-                        <version>3.7.0</version>
+                        <version>3.14.1</version>
                         <configuration>
                             <compilerArgs>
                                 <arg>--add-exports</arg>
