@@ -1,0 +1,29 @@
+# To get started with Dependabot version updates, you'll need to specify which
+# package ecosystems to update and where the package manifests are located.
+# Please see the documentation for all configuration options:
+# https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+version: 2
+updates:
+  - package-ecosystem: "maven"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 5
+    ignore:
+      - dependency-name: "org.apache.calcite:calcite-core"
+      - dependency-name: "org.apache.calcite:calcite-linq4j"
+      - dependency-name: "org.apache.calcite.avatica:avatica-core"
+
+      - dependency-name: "org.springframework:spring-core"
+      - dependency-name: "org.springframework:spring-context"
+      - dependency-name: "org.springframework:spring-context-support"
+      - dependency-name: "org.springframework:spring-beans"
+      - dependency-name: "org.springframework:spring-aop"
+      - dependency-name: "org.springframework:spring-tx"
+      - dependency-name: "org.springframework:spring-jdbc"
+      - dependency-name: "org.springframework:spring-orm"
+      - dependency-name: "org.springframework:spring-web"
+      - dependency-name: "org.springframework:spring-webmvc"
+      - dependency-name: "org.springframework:spring-test"
+
+      - dependency-name: "com.h2database:h2"
