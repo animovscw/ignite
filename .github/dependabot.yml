@@ -14,16 +14,9 @@ updates:
       - dependency-name: "org.apache.calcite:calcite-linq4j"
       - dependency-name: "org.apache.calcite.avatica:avatica-core"
 
-      - dependency-name: "org.springframework:spring-core"
-      - dependency-name: "org.springframework:spring-context"
-      - dependency-name: "org.springframework:spring-context-support"
-      - dependency-name: "org.springframework:spring-beans"
-      - dependency-name: "org.springframework:spring-aop"
-      - dependency-name: "org.springframework:spring-tx"
-      - dependency-name: "org.springframework:spring-jdbc"
-      - dependency-name: "org.springframework:spring-orm"
-      - dependency-name: "org.springframework:spring-web"
-      - dependency-name: "org.springframework:spring-webmvc"
-      - dependency-name: "org.springframework:spring-test"
+      - dependency-name: "org.springframework:*"
+      - dependency-name: "org.springframework.*:*"
+
+      - dependency-name: "junit:junit"
 
       - dependency-name: "com.h2database:h2"
