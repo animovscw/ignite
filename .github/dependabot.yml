@@ -1,0 +1,28 @@
+# To get started with Dependabot version updates, you'll need to specify which
+# package ecosystems to update and where the package manifests are located.
+# Please see the documentation for all configuration options:
+# https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+version: 2
+updates:
+  - package-ecosystem: "maven"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 5
+    ignore:
+      # Calcite is updated manually (IGNITE-27713)
+      - dependency-name: "org.apache.calcite:calcite-core"
+      - dependency-name: "org.apache.calcite:calcite-linq4j"
+      - dependency-name: "org.apache.calcite.avatica:avatica-core"
+
+      # Spring is updated manually (IGNITE-27713)
+      # Ignite 2.x requires Spring 5.x, manual upgrade needed
+      - dependency-name: "org.springframework:*"
+      - dependency-name: "org.springframework.*:*"
+
+      # JUnit 4 is updated manually
+      # Migration to JUnit 5 is a separate task
+      - dependency-name: "junit:junit"
+
+      # H2 is pinned (Ignite indexing requires specific version)
+      - dependency-name: "com.h2database:h2"
