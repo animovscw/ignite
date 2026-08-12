@@ -102,7 +102,7 @@
         <maven.flatten.file.name>pom-installed.xml</maven.flatten.file.name>
         <maven.model.version>3.8.9</maven.model.version>
         <checkstyle.puppycrawl.version>12.3.1</checkstyle.puppycrawl.version>
-        <mockito.version>5.21.0</mockito.version>
+        <mockito.version>5.23.0</mockito.version>
         <mysql.connector.version>8.0.30</mysql.connector.version>
         <postgres.connector.version>42.7.3</postgres.connector.version>
         <slf4j.version>2.0.17</slf4j.version>
